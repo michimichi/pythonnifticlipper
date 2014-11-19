@@ -9,21 +9,38 @@ Todo:
     * wcall it with a zsh loop
 """
 import os
+import argparse
 import nibabel as nib
 import numpy as np
 
 
-def python_clip_images(vmin=0, vmax=2000):
+def python_clip_images(filename, vmin=0, vmax=2000, outfilename=None):
     image = nib.load(filename)
     data = image.get_data()
     ndata = np.nan_to_num(data)
     ndata.clip(vmin, vmax)
+    # needs generalization! the infile could be a different fileformat
     outimage = nib.Nifti1Image(ndata, image.get_affine())
-    outfilename = filename.replace('.nii', '_clip.nii')
+    if not outfilename:
+         
+         outfilename = filename.replace('.nii', '_clip.nii')
     outimage.to_filename(outfilename)
 
 if __name__=="__main__":
-    # get the filename from the command line
-    # possibly get the clipping values from the cli
-    # call the function with these parameters
+   parser = argparse.ArgumentParser()
+   parser.add_argument("infile", help="Input file to be clipped, as nifti)
+   parser.add_argument("--outfile", "-o", help="Output filename (optional). Default is infile_clip.nii")
+   parser.add_argument("--vmin", type=float, help="Lower boundary of the clipped image")
+   parser.add_argument("--vmax", type=float, help="Upper boundary of the clipped image")
+   
+   args = parser.parse_args()
+   vmin, vmax=(0,2000)
+   if args.vmin:
+      vmin=args.vmin
+   if args.vmax:
+      vmax=args.vmax
+   
+   python_clip_images(args.infile, vmin=vmin, vmax=vmax, outfilename=outfilename)
+   
+   # todo: some testing is required
 
