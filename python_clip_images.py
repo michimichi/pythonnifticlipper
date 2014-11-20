@@ -12,11 +12,14 @@ import nibabel as nib
 import numpy as np
 
 
-def python_clip_images(filename, vmin=0, vmax=2000, outfilename=None):
+def python_clip_images(filename, vmin=0, vmax=None, outfilename=None):
     image = nib.load(filename)
     data = image.get_data()
     ndata = np.nan_to_num(data)
-    ndata.clip(vmin, vmax)
+    if not vmax:
+        vmax=np.percentile(ndata, 99)
+    ndata=ndata.clip(vmin, vmax)
+    print "Clipping to {} and {}".format(vmin, vmax)
     # needs generalization! the infile could be a different fileformat
     outimage = nib.Nifti1Image(ndata, image.get_affine())
     if not outfilename:
@@ -34,7 +37,7 @@ if __name__ == "__main__":
         "--vmax", type=float, help="Upper boundary of the clipped image")
 
     args = parser.parse_args()
-    vmin, vmax = (0, 2000)
+    vmin, vmax = (0, None)
     if args.vmin:
         vmin = args.vmin
     if args.vmax:
